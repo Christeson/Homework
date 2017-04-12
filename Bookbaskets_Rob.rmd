@@ -1,0 +1,156 @@
+
+```{r}
+## getwd()
+## setwd("C:/Users/chris/Documents/School/Week4") #Surface
+setwd("C:/Users/uyrc230/Documents/School/BIA6301/Week4") #Laptop
+```
+The packages for this week are **Matrix**, **arules** and **arulesViz**.
+
+```{r}
+library(arules)
+library(arulesViz)
+library(Matrix)
+```
+Importing the data
+```{r}
+bookbaskets <- read.transactions("bookdata.tsv.gz", format="single",  	# Note: 2 
+                                 sep="\t",                    	# Note: 3 
+                                 cols=c("userid", "title"),    	# Note: 4 
+                                 rm.duplicates=T)       	# Note: 5
+```
+
+
+
+```{r}
+inspect(bookbaskets[1:5]) #Examine the first five transactions
+
+basketSizes<-size(bookbaskets) #Calculate number of books purchased by "userID"
+
+
+bookFreq<-itemFrequency(bookbaskets) #Calculate the support for each book title 
+
+
+bookCount <- (bookFreq/sum(bookFreq))*sum(basketSizes) 
+#   Get the absolute count of book occurrences. 
+
+bookbasket_use<-bookbaskets[basketSizes>1] #Only keep transactions with more than one book purchased. 
+
+bookbasket_use
+```
+####
+# Starting here.
+
+
+
+# Examining 1-itemset
+
+Let's count the **support** (or frequency) of the grocery items. We will put the support in a data frame so we can view them.
+
+```{r}
+freq_bookbaskets_data_frame <- as.data.frame(itemFrequency(bookbaskets))
+View(freq_bookbaskets_data_frame)
+```
+
+Let's pare this list down a bit to look at the first 15 items.
+
+```{r}
+itemFrequency(bookbaskets[, 1:15])
+```
+
+Plotting the support.
+
+```{r}
+itemFrequencyPlot(bookbaskets, support =0.01) 
+```
+
+#Best Selling Titles - Top 10 best sellers
+Note: Simple list based on Frequency of purchase
+```{r}
+itemFrequencyPlot(bookbaskets, topN = 10, xlab = "Best Selling Books") 
+?itemFrequencyPlot
+```
+
+```{r}
+#eliminating Wild Animus from both the lhs and rhs
+bookbaskets_noAnimus <- apriori(bookbaskets, parameter = list(support =
+                          0.0009, confidence = 0.9, minlen = 2, maxlen = 10),appearance = list(none = c("Wild Animus"))) 
+```
+
+
+
+
+Rules for #2
+
+```{r} 
+bookbasketrules <- apriori(bookbaskets, parameter = list(support =
+                                                      0.001, confidence = 0.9, minlen = 2)) 
+```
+
+Let's count the number of rules found
+
+```{r}
+print(bookbasketrules) 
+```
+```{r}
+
+#Trying Support = 0.001. Confidence = 0.80.
+#Support = supported by at least 50 customers: 50/40822[1] = .001
+Bookbaskets_50_customers <- apriori(bookbaskets, parameter = list(support = 0.001, confidence = 0.80))
+
+#Outcome = 101 rules
+#c .80 = 84 rules
+
+summary(Bookbaskets_50_customers)
+# Inspect rules
+summary(Bookbaskets_50_customers)
+print(Bookbaskets_50_customers)
+inspect(Bookbaskets_50_customers)
+```
+
+###Many sets indicate that customers tend to buy multiple titles within the same series, making it difficult to determine best choices for the display with the rules given. 
+
+###Perhaps better is to look at the bestsellers that are not in a series, and make a seprate display from them
+
+
+```{r}
+appearance = list(lhs = 
+                                            c("The Lovely Bones: A Novel",
+                                  "She's Come Undone",
+                                  "The Nanny Diaries: A Novel",
+                                  "A Painted House",
+                                  "Bridget Jones's Diary",
+                                  "Divine Secrets of the Ya-Ya Sisterhood: A Novel",
+                                  "The Secret Life of Bees",
+                                  "White Oleander : A Novel",
+                                  "The Deep End of the Ocean",
+                                  "Where The Heart Is",
+                                  "House of Sand and Fog",
+                                  "East of Eden"),
+  default="rhs")
+```
+Use print(). This will give you the number of each book sold.
+
+```{r}
+bookCount <- (bookFreq/sum(bookFreq))*sum(basketSizes) #The count of book occurrences. 
+print(bookCount)
+```
+
+```{r}
+bookbaskets_novels <- apriori(bookbaskets, parameter = list(support = 0.001, confidence = 0.5, minlen = 2, maxlen = 10),appearance = list(items = c("Novel")))
+inspect(bookbaskets_novels[1:10])
+
+```
+
+
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
